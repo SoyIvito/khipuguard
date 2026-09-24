@@ -1,0 +1,11 @@
+{
+  "intervalo_segundos": 60,
+  "humedad_min": 30.0,
+  "humedad_max": 70.0,
+  "temperatura_min": 15.0,
+  "temperatura_max": 30.0,
+  "correos_destinatarios": [
+    "ejemplo1@correo.com",
+    "ejemplo2@correo.com"
+  ]
+}
