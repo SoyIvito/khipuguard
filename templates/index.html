@@ -1,72 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Monitoreo de Sensores</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Monitoreo de Sensores - Conservación</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input[type="number"], input[type="text"] { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; margin-top: 15px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #2c3e50;
+      }
+      .grid-sensores {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .sensor-box {
+        background: #eef2f7;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+        border-left: 5px solid #007bff;
+        transition: all 0.3s ease;
+      }
+      .sensor-val {
+        font-size: 28px;
+        font-weight: bold;
+        color: #007bff;
+        margin: 8px 0;
+      }
+      .alerta-hongo {
+        background-color: #ffebee !important;
+        border-left-color: #d32f2f !important;
+        animation: pulso-hongo 1s infinite alternate;
+      }
+      @keyframes pulso-hongo {
+        from {
+          box-shadow: 0 0 5px rgba(211, 47, 47, 0.4);
+        }
+        to {
+          box-shadow: 0 0 15px rgba(211, 47, 47, 0.9);
+        }
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      input[type="number"],
+      input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        margin-top: 15px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        background: #28a745;
+        color: white;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 13px;
+      }
+      th {
+        background-color: #f8f9fa;
+        color: #495057;
+      }
+      .badge-ok {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .badge-fail {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .badge-bio {
+        background-color: #f5c6cb;
+        color: #721c24;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <h1>Panel de Monitoreo • Conservación Preventiva</h1>
 
-    <h1>Panel de Monitoreo Arduino</h1>
-
+    <!-- TARJETAS DE LECTURA EN TIEMPO REAL -->
     <div class="card">
-        <h2>Lecturas Actuales</h2>
-        <p><strong>Humedad del Ambiente:</strong> {{ datos.humedad_ambiente }}%</p>
-        <p><strong>Temperatura del Ambiente:</strong> {{ datos.temperatura_ambiente }}°C</p>
+      <h2>
+        Lecturas en Tiempo Real
+        <span class="status-badge" id="badge-com">Conectado</span>
+      </h2>
+
+      <div class="grid-sensores">
+        <div class="sensor-box">
+          <div>Temperatura Ambiente</div>
+          <div class="sensor-val">
+            <span id="val-temp">{{ datos.temperatura_ambiente }}</span> °C
+          </div>
+        </div>
+
+        <div class="sensor-box">
+          <div>Humedad Relativa</div>
+          <div class="sensor-val">
+            <span id="val-hum">{{ datos.humedad_ambiente }}</span> %
+          </div>
+        </div>
+
+        <div class="sensor-box" style="border-left-color: #ffc107">
+          <div>Radiación / Luz (LDR)</div>
+          <div class="sensor-val" style="color: #d39e00">
+            <span id="val-luz">{{ datos.luz_ambiente }}</span> %
+          </div>
+        </div>
+
+        <div
+          class="sensor-box"
+          id="box-husky"
+          style="border-left-color: #17a2b8"
+        >
+          <div>HuskyLens 2 (Detección)</div>
+          <div class="sensor-val" id="val-husky-color" style="color: #17a2b8">
+            <span id="val-husky">ID #{{ datos.husky_id }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- CONFIGURACIÓN DE UMBRALES -->
     <div class="card">
-        <h2>Configuración de Umbrales y Tiempos</h2>
-        <form id="configForm">
-            <label>Intervalo de Chequeo (segundos):</label>
-            <input type="number" id="intervalo_segundos" value="{{ config.intervalo_segundos }}">
+      <h2>Configuración de Umbrales de Seguridad</h2>
+      <form id="configForm">
+        <label>Intervalo de Chequeo (segundos):</label>
+        <input
+          type="number"
+          id="intervalo_segundos"
+          value="{{ config.intervalo_segundos }}"
+        />
 
-            <label>Humedad Mínima (%):</label>
-            <input type="number" step="0.1" id="humedad_min" value="{{ config.humedad_min }}">
+        <label>Humedad Mínima (%):</label>
+        <input
+          type="number"
+          step="0.1"
+          id="humedad_min"
+          value="{{ config.humedad_min }}"
+        />
 
-            <label>Humedad Máxima (%):</label>
-            <input type="number" step="0.1" id="humedad_max" value="{{ config.humedad_max }}">
+        <label>Humedad Máxima (%):</label>
+        <input
+          type="number"
+          step="0.1"
+          id="humedad_max"
+          value="{{ config.humedad_max }}"
+        />
 
-            <label>Temperatura Mínima (°C):</label>
-            <input type="number" step="0.1" id="temperatura_min" value="{{ config.temperatura_min }}">
+        <label>Temperatura Mínima (°C):</label>
+        <input
+          type="number"
+          step="0.1"
+          id="temperatura_min"
+          value="{{ config.temperatura_min }}"
+        />
 
-            <label>Temperatura Máxima (°C):</label>
-            <input type="number" step="0.1" id="temperatura_max" value="{{ config.temperatura_max }}">
+        <label>Temperatura Máxima (°C):</label>
+        <input
+          type="number"
+          step="0.1"
+          id="temperatura_max"
+          value="{{ config.temperatura_max }}"
+        />
 
-            <label>Correos Destinatarios (separados por coma):</label>
-            <input type="text" id="correos_destinatarios" value="{{ config.correos_destinatarios | join(', ') }}">
+        <label>Luz Máxima Permitida (%):</label>
+        <input
+          type="number"
+          step="0.1"
+          id="luz_max"
+          value="{{ config.luz_max | default(75.0) }}"
+        />
 
-            <button type="button" onclick="guardarConfiguracion()">Guardar Cambios</button>
-        </form>
+        <label>Correos Destinatarios (separados por coma):</label>
+        <input
+          type="text"
+          id="correos_destinatarios"
+          value="{{ config.correos_destinatarios | join(', ') }}"
+        />
+
+        <div style="display: flex; gap: 10px">
+          <button type="button" onclick="guardarConfiguracion()">
+            Guardar Cambios
+          </button>
+          <button
+            type="button"
+            onclick="probarEnvioEmail()"
+            style="background-color: #6c757d"
+          >
+            Enviar Correo de Prueba
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- HISTORIAL DE CORREOS DESPACHADOS -->
+    <div class="card">
+      <h2>Historial de Alertas Emitidas</h2>
+      {% if historial and historial|length > 0 %}
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Tipo de Alerta</th>
+            <th>T (°C)</th>
+            <th>H (%)</th>
+            <th>Luz (%)</th>
+            <th>Destinatarios</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in historial %}
+          <tr>
+            <td>{{ item.fecha_hora }}</td>
+            <td>
+              {% if "Biológica" in item.tipo %}
+              <span class="badge-bio">🚨 {{ item.tipo }}</span>
+              {% else %} {{ item.tipo }} {% endif %}
+            </td>
+            <td>{{ item.temperatura }}</td>
+            <td>{{ item.humedad }}</td>
+            <td>{{ item.luz }}</td>
+            <td>{{ item.destinatarios | join(', ') }}</td>
+            <td>
+              {% if item.estado == "Exitoso" %}
+              <span class="badge-ok">Enviado</span>
+              {% else %}
+              <span class="badge-fail" title="{{ item.error }}">Falló</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color: #666; font-style: italic">
+        No se han emitido alertas aún.
+      </p>
+      {% endif %}
     </div>
 
     <script>
-        function guardarConfiguracion() {
-            const data = {
-                intervalo_segundos: parseInt(document.getElementById('intervalo_segundos').value),
-                humedad_min: parseFloat(document.getElementById('humedad_min').value),
-                humedad_max: parseFloat(document.getElementById('humedad_max').value),
-                temperatura_min: parseFloat(document.getElementById('temperatura_min').value),
-                temperatura_max: parseFloat(document.getElementById('temperatura_max').value),
-                correos_destinatarios: document.getElementById('correos_destinatarios').value.split(',').map(e => e.trim())
-            };
+      function actualizarMedicionesEnVivo() {
+        fetch("/api/sensores")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.temperatura_ambiente !== undefined) {
+              document.getElementById("val-temp").innerText =
+                data.temperatura_ambiente;
+            }
+            if (data.humedad_ambiente !== undefined) {
+              document.getElementById("val-hum").innerText =
+                data.humedad_ambiente;
+            }
+            if (data.luz_ambiente !== undefined) {
+              document.getElementById("val-luz").innerText = data.luz_ambiente;
+            }
+            if (data.husky_id !== undefined) {
+              const elemTexto = document.getElementById("val-husky");
+              const boxHusky = document.getElementById("box-husky");
+              const colHusky = document.getElementById("val-husky-color");
 
-            fetch('/api/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(res => alert('Configuración guardada exitosamente'));
-        }
+              if (data.husky_id === 3) {
+                elemTexto.innerText = "🚨 ID #3: HONGO";
+                boxHusky.classList.add("alerta-hongo");
+                colHusky.style.color = "#d32f2f";
+              } else if (data.husky_id > 0) {
+                elemTexto.innerText = `ID #${data.husky_id}`;
+                boxHusky.classList.remove("alerta-hongo");
+                boxHusky.style.borderLeftColor = "#17a2b8";
+                colHusky.style.color = "#17a2b8";
+              } else {
+                elemTexto.innerText = "Sin Detección";
+                boxHusky.classList.remove("alerta-hongo");
+                boxHusky.style.borderLeftColor = "#17a2b8";
+                colHusky.style.color = "#6c757d";
+              }
+            }
+
+            if (data.conectado !== undefined) {
+              const badge = document.getElementById("badge-com");
+              if (data.conectado) {
+                badge.innerText = "Conectado";
+                badge.style.background = "#28a745";
+              } else {
+                badge.innerText = "Sin Conexión";
+                badge.style.background = "#dc3545";
+              }
+            }
+          })
+          .catch((err) => {
+            console.error("Error al actualizar sensores:", err);
+            document.getElementById("badge-com").innerText = "Sin Conexión";
+            document.getElementById("badge-com").style.background = "#dc3545";
+          });
+      }
+
+      setInterval(actualizarMedicionesEnVivo, 1000);
+
+      function guardarConfiguracion() {
+        const data = {
+          intervalo_segundos: parseInt(
+            document.getElementById("intervalo_segundos").value,
+          ),
+          humedad_min: parseFloat(document.getElementById("humedad_min").value),
+          humedad_max: parseFloat(document.getElementById("humedad_max").value),
+          temperatura_min: parseFloat(
+            document.getElementById("temperatura_min").value,
+          ),
+          temperatura_max: parseFloat(
+            document.getElementById("temperatura_max").value,
+          ),
+          luz_max: parseFloat(document.getElementById("luz_max").value),
+          correos_destinatarios: document
+            .getElementById("correos_destinatarios")
+            .value.split(",")
+            .map((e) => e.trim())
+            .filter((e) => e.length > 0),
+        };
+
+        fetch("/api/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+          .then((res) => res.json())
+          .then((res) => alert("Configuración guardada exitosamente"))
+          .catch((err) => alert("Error al guardar configuración: " + err));
+      }
+
+      function probarEnvioEmail() {
+        fetch("/api/test-email", { method: "POST" })
+          .then((res) => res.json())
+          .then((res) => {
+            alert(res.message || "Prueba enviada");
+            setTimeout(() => location.reload(), 1200); // Recarga para ver el nuevo registro en la tabla
+          })
+          .catch((err) => alert("Error al enviar prueba: " + err));
+      }
     </script>
-</body>
+  </body>
 </html>
